@@ -112,6 +112,45 @@ app.post("/api/v1/parking-lot-records", async (req, res) => {
   }
 });
 
+app.delete("/api/v1/parking-lot-records/:id", async (req, res) => {
+    try{
+
+    const records = await readFileFromPath(jsonFilePath);
+    const id = Number(req.params.id);
+    
+    if (Number.isNaN(id)) {
+      console.log(typeof id)
+      return res.status(400).json({
+        status: "failed",
+        message: "ID is invalid, Please provide a valid number",
+      });
+    }
+
+    const activeRecord = records.find((e) => e.id === id);
+    if (!activeRecord) {
+      return res.status(404).json({
+        status: "failed",
+        message: "ID not found, please recheck your input",
+      });
+    }
+
+    records.splice(id-1, 1);
+    await fs.writeFile(jsonFilePath, JSON.stringify(records, null, 2));
+    res.status(201).json({
+      status: "success",
+      message: "Car has been unparked successfully"
+    });
+
+    }
+    catch(err){
+        console.error("The actual error is:", err);
+        res.status(500).json({
+        status: "failed",
+        message: "An error occurred while fetching data, Please refresh or try again later"
+        });
+    }
+})
+
 
 app.listen(PORT, () => {
   console.log(`Parking-lot app is running on port: ${PORT}`);
